@@ -1,0 +1,165 @@
+@use '../variables' as vars;
+@use '../mixins' as mix;
+
+.issue-card {
+  @include mix.card;
+  margin-bottom: vars.$spacing-md;
+  
+  &__header {
+    @include mix.flex-between;
+    margin-bottom: vars.$spacing-sm;
+  }
+  
+  &__title {
+    font-size: 1.25rem;
+    font-weight: vars.$font-weight-medium;
+    margin-bottom: vars.$spacing-xs;
+    color: vars.$text-primary;
+  }
+  
+  &__category {
+    display: inline-block;
+    padding: vars.$spacing-xs vars.$spacing-sm;
+    border-radius: vars.$border-radius-sm;
+    font-size: 0.75rem;
+    font-weight: vars.$font-weight-medium;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    
+    &--infrastructure {
+      background-color: rgba(vars.$primary-color, 0.1);
+      color: vars.$primary-color;
+    }
+    
+    &--safety {
+      background-color: rgba(vars.$error-color, 0.1);
+      color: vars.$error-color;
+    }
+    
+    &--environment {
+      background-color: rgba(vars.$success-color, 0.1);
+      color: vars.$success-color;
+    }
+    
+    &--community {
+      background-color: rgba(vars.$info-color, 0.1);
+      color: vars.$info-color;
+    }
+    
+    &--other {
+      background-color: rgba(vars.$text-secondary, 0.1);
+      color: vars.$text-secondary;
+    }
+  }
+  
+  &__status {
+    display: inline-block;
+    padding: vars.$spacing-xs vars.$spacing-sm;
+    border-radius: vars.$border-radius-sm;
+    font-size: 0.75rem;
+    font-weight: vars.$font-weight-medium;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    
+    &--open {
+      background-color: rgba(vars.$info-color, 0.1);
+      color: vars.$info-color;
+    }
+    
+    &--in-progress {
+      background-color: rgba(vars.$warning-color, 0.1);
+      color: vars.$warning-color;
+    }
+    
+    &--resolved {
+      background-color: rgba(vars.$success-color, 0.1);
+      color: vars.$success-color;
+    }
+    
+    &--closed {
+      background-color: rgba(vars.$text-secondary, 0.1);
+      color: vars.$text-secondary;
+    }
+  }
+  
+  &__meta {
+    display: flex;
+    align-items: center;
+    margin-bottom: vars.$spacing-sm;
+    color: vars.$text-secondary;
+    font-size: 0.875rem;
+    
+    .icon {
+      margin-right: vars.$spacing-xs;
+      font-size: 1rem;
+    }
+    
+    &-item {
+      margin-right: vars.$spacing-md;
+      display: flex;
+      align-items: center;
+    }
+  }
+  
+  &__description {
+    margin-bottom: vars.$spacing-md;
+    color: vars.$text-primary;
+  }
+  
+  &__image {
+    width: 100%;
+    height: 200px;
+    border-radius: vars.$border-radius-sm;
+    overflow: hidden;
+    margin-bottom: vars.$spacing-md;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+  
+  &__actions {
+    @include mix.flex-between;
+    padding-top: vars.$spacing-sm;
+    border-top: 1px solid vars.$divider-color;
+  }
+  
+  &__vote {
+    display: flex;
+    align-items: center;
+    
+    .count {
+      font-weight: vars.$font-weight-medium;
+      margin: 0 vars.$spacing-xs;
+    }
+    
+    .icon {
+      cursor: pointer;
+      transition: color vars.$transition-duration-short vars.$transition-easing-standard;
+      
+      &:hover {
+        color: vars.$primary-color;
+      }
+      
+      &--active {
+        color: vars.$primary-color;
+      }
+    }
+  }
+  
+  &__comments {
+    display: flex;
+    align-items: center;
+    color: vars.$text-secondary;
+    
+    .icon {
+      margin-right: vars.$spacing-xs;
+    }
+    
+    &:hover {
+      color: vars.$primary-color;
+    }
+  }
+} 

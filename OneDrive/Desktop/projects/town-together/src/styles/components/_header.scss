@@ -1,0 +1,69 @@
+@use '../variables' as vars;
+@use '../mixins' as mix;
+
+.header {
+  background-color: vars.$surface-color;
+  box-shadow: vars.$shadow-1;
+  padding: vars.$spacing-md 0;
+  position: sticky;
+  top: 0;
+  z-index: vars.$z-index-drawer - 100;
+  
+  &__container {
+    @include mix.flex-between;
+  }
+  
+  &__logo {
+    font-size: 1.5rem;
+    font-weight: vars.$font-weight-bold;
+    color: vars.$primary-color;
+    
+    img {
+      height: 40px;
+      width: auto;
+    }
+  }
+  
+  &__nav {
+    @include mix.flex-center;
+    
+    @include mix.respond-below(md) {
+      display: none;
+    }
+  }
+  
+  &__nav-item {
+    margin-left: vars.$spacing-md;
+    font-weight: vars.$font-weight-medium;
+    
+    &--active {
+      color: vars.$primary-color;
+    }
+  }
+  
+  &__mobile-menu {
+    display: none;
+    
+    @include mix.respond-below(md) {
+      display: block;
+    }
+  }
+  
+  &__user-menu {
+    @include mix.flex-center;
+    margin-left: vars.$spacing-md;
+    
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+} 
