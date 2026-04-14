@@ -312,21 +312,54 @@
 </div>
 
 <script>
+// Helper: check that code has proper HTML document structure
+function checkStructure(code) {
+  const lower = code.toLowerCase();
+  if (!lower.includes('<!doctype html>')) return "Missing <!DOCTYPE html> at the very top of your code!";
+  if (!lower.includes('<html')) return "Missing <html> tag! Wrap everything in <html>...</html>";
+  if (!lower.includes('</html>')) return "Missing closing </html> tag!";
+  if (!lower.includes('<head>')) return "Missing <head> section! Add <head>...</head> inside <html>";
+  if (!lower.includes('</head>')) return "Missing closing </head> tag!";
+  if (!lower.includes('<title>')) return "Missing <title> tag inside <head>! Every page needs a title.";
+  if (!lower.includes('</title>')) return "Missing closing </title> tag!";
+  if (!lower.includes('<body')) return "Missing <body> tag! Add <body>...</body> after </head>";
+  if (!lower.includes('</body>')) return "Missing closing </body> tag!";
+  return null;
+}
+
 const challenges = [
   {
     title: "My First Web Page",
     icon: "&#127793;",
     badge: "&#127793;",
     badgeName: "Seedling Badge",
-    description: `Every website starts with HTML! Create a page with a heading that says <code>Hello Girl Scouts!</code> and a paragraph underneath that says something about yourself.`,
-    hint: `Use <code>&lt;h1&gt;Hello Girl Scouts!&lt;/h1&gt;</code> for the heading and <code>&lt;p&gt;I like camping!&lt;/p&gt;</code> for the paragraph.`,
-    starter: `<h1>Hello Girl Scouts!</h1>\n<p>Write something about yourself here!</p>`,
-    check(doc) {
+    description: `Every website starts with a proper HTML document! Follow the comments in the code to build your first complete web page. You need a <code>&lt;!DOCTYPE html&gt;</code>, <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code> with a <code>&lt;title&gt;</code>, and a <code>&lt;body&gt;</code> with an <code>&lt;h1&gt;</code> heading and a <code>&lt;p&gt;</code> paragraph about yourself.`,
+    hint: `Replace the placeholder text inside the <code>&lt;title&gt;</code>, <code>&lt;h1&gt;</code>, and <code>&lt;p&gt;</code> tags with your own words. Don't delete any tags!`,
+    starter: `<!DOCTYPE html>
+<html>
+  <head>
+    <!-- STEP 1: Change the title between the <title> tags -->
+    <title>My Page</title>
+  </head>
+  <body>
+    <!-- STEP 2: Change the heading text to: Hello Girl Scouts! -->
+    <h1>Change me!</h1>
+
+    <!-- STEP 3: Write a sentence about yourself in this paragraph -->
+    <p>Tell us something about yourself here!</p>
+  </body>
+</html>`,
+    check(doc, code) {
+      const err = checkStructure(code);
+      if (err) return err;
       const h1 = doc.querySelector('h1');
       const p = doc.querySelector('p');
-      if (!h1) return "Add a heading using <h1> tags!";
-      if (!p) return "Add a paragraph using <p> tags!";
-      if (p.textContent.trim().length < 5) return "Write a bit more in your paragraph!";
+      const title = doc.querySelector('title');
+      if (!title || title.textContent.trim().length < 2) return "Add a title inside your <title> tag!";
+      if (!h1) return "Add a heading using <h1> tags inside <body>!";
+      if (h1.textContent.trim() === 'Change me!') return "Change the <h1> heading text — make it your own!";
+      if (!p) return "Add a paragraph using <p> tags inside <body>!";
+      if (p.textContent.trim() === 'Tell us something about yourself here!' || p.textContent.trim().length < 5) return "Write something about yourself in the <p> paragraph!";
       return true;
     }
   },
@@ -335,14 +368,34 @@ const challenges = [
     icon: "&#127850;",
     badge: "&#127850;",
     badgeName: "Cookie Badge",
-    description: `Girl Scout cookies are the best! Make a page with a heading <code>Our Cookie Flavors</code> and a list of at least 3 cookie names using a <code>&lt;ul&gt;</code> list with <code>&lt;li&gt;</code> items.`,
-    hint: `Try this structure:<br><code>&lt;ul&gt;<br>&nbsp;&nbsp;&lt;li&gt;Thin Mints&lt;/li&gt;<br>&nbsp;&nbsp;&lt;li&gt;Samoas&lt;/li&gt;<br>&nbsp;&nbsp;&lt;li&gt;Tagalongs&lt;/li&gt;<br>&lt;/ul&gt;</code>`,
-    starter: `<h1>Our Cookie Flavors</h1>\n\n<ul>\n  <li>Thin Mints</li>\n  <li>Add more cookies!</li>\n</ul>`,
-    check(doc) {
+    description: `Build a cookie menu page! You need a complete HTML document with a heading, and a <code>&lt;ul&gt;</code> (unordered list) containing at least <strong>3</strong> cookie flavors as <code>&lt;li&gt;</code> (list item) elements.`,
+    hint: `Add more <code>&lt;li&gt;Cookie Name&lt;/li&gt;</code> lines inside the <code>&lt;ul&gt;</code> to get at least 3 cookies in your list.`,
+    starter: `<!DOCTYPE html>
+<html>
+  <head>
+    <!-- STEP 1: Give your cookie page a title -->
+    <title>Cookie Shop</title>
+  </head>
+  <body>
+    <!-- STEP 2: Add a heading for your cookie shop -->
+    <h1>Our Cookie Flavors</h1>
+
+    <!-- STEP 3: Add at least 3 cookies to this list -->
+    <!-- Each cookie goes inside <li> tags like this: <li>Cookie Name</li> -->
+    <ul>
+      <li>Thin Mints</li>
+      <!-- Add 2 or more cookies below! -->
+
+    </ul>
+  </body>
+</html>`,
+    check(doc, code) {
+      const err = checkStructure(code);
+      if (err) return err;
       const h1 = doc.querySelector('h1');
       const lis = doc.querySelectorAll('li');
-      if (!h1) return "Add a heading!";
-      if (lis.length < 3) return "Add at least 3 cookie flavors to your list!";
+      if (!h1) return "Add a heading inside <body>!";
+      if (lis.length < 3) return `You have ${lis.length} cookie(s) — add at least 3! Add more <li> tags.`;
       return true;
     }
   },
@@ -351,17 +404,44 @@ const challenges = [
     icon: "&#127981;",
     badge: "&#127981;",
     badgeName: "Campfire Badge",
-    description: `Now let's add some COLOR! Use a <code>&lt;style&gt;</code> tag to change the <code>background-color</code> of the page body and the <code>color</code> of your heading. Make your campsite page colorful!`,
-    hint: `Add this at the top of your code:<br><code>&lt;style&gt;<br>&nbsp;&nbsp;body { background-color: lightgreen; }<br>&nbsp;&nbsp;h1 { color: brown; }<br>&lt;/style&gt;</code>`,
-    starter: `<style>\n  body {\n    /* Change the background color! Try: lightgreen, pink, lightyellow */\n    background-color: white;\n  }\n  h1 {\n    /* Change the text color! Try: brown, darkgreen, purple */\n    color: black;\n  }\n</style>\n\n<h1>Welcome to Camp!</h1>\n<p>The best campsite in the forest.</p>`,
-    check(doc) {
+    description: `Now let's add COLOR with CSS! Inside the <code>&lt;head&gt;</code>, use a <code>&lt;style&gt;</code> tag to change the page's <code>background-color</code> and the heading's <code>color</code>. The <code>&lt;style&gt;</code> tag goes inside <code>&lt;head&gt;</code>, not <code>&lt;body&gt;</code>!`,
+    hint: `Replace <code>white</code> with a color like <code>lightgreen</code>, <code>peachpuff</code>, or <code>lightyellow</code>. Replace <code>black</code> with <code>darkgreen</code>, <code>brown</code>, or <code>purple</code>.`,
+    starter: `<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Campsite</title>
+
+    <!-- CSS (styles) go inside <style> tags in the <head> section -->
+    <style>
+      /* STEP 1: Change the background-color from white to a fun color */
+      /* Try: lightgreen, peachpuff, lightyellow, lavender, lightblue */
+      body {
+        background-color: white;
+      }
+
+      /* STEP 2: Change the heading color from black to something else */
+      /* Try: darkgreen, brown, purple, darkred, navy */
+      h1 {
+        color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to Camp!</h1>
+    <p>The best campsite in the forest.</p>
+  </body>
+</html>`,
+    check(doc, code) {
+      const err = checkStructure(code);
+      if (err) return err;
       const body = doc.body;
       const h1 = doc.querySelector('h1');
-      if (!h1) return "Add a heading!";
+      if (!h1) return "Add a heading inside <body>!";
+      if (!doc.querySelector('style')) return "Add a <style> tag inside <head> for your CSS!";
       const bodyBg = getComputedStyle(body).backgroundColor;
       const h1Color = getComputedStyle(h1).color;
       if (bodyBg === 'rgba(0, 0, 0, 0)' || bodyBg === 'rgb(255, 255, 255)') return "Change the background-color to something other than white!";
-      if (h1Color === 'rgb(0, 0, 0)') return "Change the heading color to something other than black!";
+      if (h1Color === 'rgb(0, 0, 0)') return "Change the h1 color to something other than black!";
       return true;
     }
   },
@@ -370,16 +450,48 @@ const challenges = [
     icon: "&#129351;",
     badge: "&#129351;",
     badgeName: "Designer Badge",
-    description: `Design a badge! Create a <code>&lt;div&gt;</code> and use CSS to make it look like a badge: give it a <code>width</code>, <code>height</code>, <code>border-radius: 50%</code> (makes it a circle!), a <code>background-color</code>, and center some text inside it.`,
-    hint: `Try:<br><code>&lt;style&gt;<br>&nbsp;&nbsp;.badge {<br>&nbsp;&nbsp;&nbsp;&nbsp;width: 150px;<br>&nbsp;&nbsp;&nbsp;&nbsp;height: 150px;<br>&nbsp;&nbsp;&nbsp;&nbsp;border-radius: 50%;<br>&nbsp;&nbsp;&nbsp;&nbsp;background-color: gold;<br>&nbsp;&nbsp;&nbsp;&nbsp;text-align: center;<br>&nbsp;&nbsp;&nbsp;&nbsp;line-height: 150px;<br>&nbsp;&nbsp;&nbsp;&nbsp;font-size: 20px;<br>&nbsp;&nbsp;}<br>&lt;/style&gt;<br>&lt;div class="badge"&gt;Coder&lt;/div&gt;</code>`,
-    starter: `<style>\n  .badge {\n    width: 150px;\n    height: 150px;\n    /* Add border-radius: 50%; to make it a circle! */\n    /* Add a background-color */\n    /* Add text-align: center; */\n    /* Add line-height: 150px; to center text vertically */\n    font-size: 20px;\n    font-weight: bold;\n  }\n</style>\n\n<div class="badge">Coder!</div>`,
-    check(doc) {
+    description: `Design a circular badge using CSS! You need a <code>&lt;div&gt;</code> element styled with: <code>border-radius: 50%</code> (makes circles!), a <code>background-color</code>, and centered text. Follow the comments step by step.`,
+    hint: `Remove the <code>/* </code> and <code> */</code> around each CSS line to "uncomment" it and make it work. For example, change <code>/* border-radius: 50%; */</code> to just <code>border-radius: 50%;</code>`,
+    starter: `<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Badge</title>
+    <style>
+      .badge {
+        width: 150px;
+        height: 150px;
+        font-size: 20px;
+        font-weight: bold;
+
+        /* STEP 1: Uncomment the line below to make it a circle */
+        /* (Remove the /* and */ around it) */
+        /* border-radius: 50%; */
+
+        /* STEP 2: Uncomment and pick a background color */
+        /* Try: gold, tomato, dodgerblue, mediumseagreen */
+        /* background-color: gold; */
+
+        /* STEP 3: Uncomment these to center the text */
+        /* text-align: center; */
+        /* line-height: 150px; */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- STEP 4: Change the text inside the badge to your own badge name! -->
+    <div class="badge">Coder!</div>
+  </body>
+</html>`,
+    check(doc, code) {
+      const err = checkStructure(code);
+      if (err) return err;
       const badge = doc.querySelector('.badge');
-      if (!badge) return "Create a div with class='badge'!";
+      if (!badge) return "Keep the <div class=\"badge\"> element in your <body>!";
       const style = getComputedStyle(badge);
-      if (style.borderRadius !== '50%' && !style.borderRadius.includes('75px')) return "Add border-radius: 50% to make it a circle!";
+      if (style.borderRadius !== '50%' && !style.borderRadius.includes('75px')) return "Uncomment border-radius: 50%; to make it a circle!";
       const bg = style.backgroundColor;
-      if (bg === 'rgba(0, 0, 0, 0)' || bg === 'rgb(255, 255, 255)' || bg === 'transparent') return "Give your badge a background-color!";
+      if (bg === 'rgba(0, 0, 0, 0)' || bg === 'rgb(255, 255, 255)' || bg === 'transparent') return "Uncomment background-color and pick a color!";
+      if (style.textAlign !== 'center') return "Uncomment text-align: center; to center your text!";
       return true;
     }
   },
@@ -388,25 +500,67 @@ const challenges = [
     icon: "&#11088;",
     badge: "&#11088;",
     badgeName: "Star Badge",
-    description: `Final challenge! Build a mini troop homepage. It needs: a colored heading with your troop name, a paragraph about your troop, a list of activities, AND at least one styled element (background, colors, font-size, etc). Show off everything you've learned!`,
-    hint: `Combine everything! Use <code>&lt;style&gt;</code> for CSS, <code>&lt;h1&gt;</code> for heading, <code>&lt;p&gt;</code> for paragraphs, <code>&lt;ul&gt;</code> and <code>&lt;li&gt;</code> for lists. Get creative with colors!`,
-    starter: `<style>\n  body {\n    font-family: Arial, sans-serif;\n    /* Add a background-color! */\n  }\n  h1 {\n    /* Style your troop name! */\n  }\n</style>\n\n<h1>Troop Awesome</h1>\n<p>We are the coolest troop ever!</p>\n\n<h2>Our Favorite Activities</h2>\n<ul>\n  <li>Camping</li>\n  <li>Coding</li>\n  <li>Add more!</li>\n</ul>`,
-    check(doc) {
+    description: `Final challenge! Build a complete troop homepage using everything you've learned. You need: a <code>&lt;title&gt;</code>, CSS <code>&lt;style&gt;</code> with at least one color change, an <code>&lt;h1&gt;</code> with your troop name, a <code>&lt;p&gt;</code> about your troop, and a <code>&lt;ul&gt;</code> list with at least 3 activities. Make it yours!`,
+    hint: `Follow each STEP comment in order. Pick your own colors, troop name, description, and activities. Get creative — this is YOUR page!`,
+    starter: `<!DOCTYPE html>
+<html>
+  <head>
+    <!-- STEP 1: Give your troop page a title -->
+    <title>Our Troop</title>
+
+    <style>
+      /* STEP 2: Pick a background color for the whole page */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: white;
+      }
+
+      /* STEP 3: Style your troop name heading with a color */
+      h1 {
+        color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- STEP 4: Change this to YOUR troop name -->
+    <h1>Troop Name Here</h1>
+
+    <!-- STEP 5: Write 1-2 sentences about your troop -->
+    <p>Write about your troop here!</p>
+
+    <h2>Our Favorite Activities</h2>
+    <!-- STEP 6: Add at least 3 activities your troop loves -->
+    <ul>
+      <li>Camping</li>
+      <!-- Add 2 more activities below! -->
+
+    </ul>
+  </body>
+</html>`,
+    check(doc, code) {
+      const err = checkStructure(code);
+      if (err) return err;
       const h1 = doc.querySelector('h1');
       const p = doc.querySelector('p');
       const lis = doc.querySelectorAll('li');
       const style = doc.querySelector('style');
-      if (!h1) return "Add a heading for your troop name!";
-      if (!p) return "Add a paragraph about your troop!";
-      if (lis.length < 3) return "Add at least 3 activities to your list!";
-      if (!style || style.textContent.trim().length < 20) return "Add more CSS styling to make it look awesome!";
+      if (!h1) return "Add an <h1> heading with your troop name inside <body>!";
+      if (h1.textContent.trim() === 'Troop Name Here') return "Change the <h1> to your actual troop name!";
+      if (!p) return "Add a <p> paragraph about your troop!";
+      if (p.textContent.trim() === 'Write about your troop here!' || p.textContent.trim().length < 10) return "Write a real description about your troop in the <p> tag!";
+      if (lis.length < 3) return `You have ${lis.length} activit${lis.length === 1 ? 'y' : 'ies'} — add at least 3!`;
+      if (!style) return "Add a <style> tag in <head> with some CSS!";
+      const body = doc.body;
+      const bodyBg = getComputedStyle(body).backgroundColor;
+      const h1Color = getComputedStyle(h1).color;
+      if ((bodyBg === 'rgba(0, 0, 0, 0)' || bodyBg === 'rgb(255, 255, 255)') && h1Color === 'rgb(0, 0, 0)') return "Change at least one color in your CSS — background-color or h1 color!";
       return true;
     }
   }
 ];
 
 // --- LocalStorage persistence ---
-const STORAGE_KEY = 'gs-code-camp';
+const STORAGE_KEY = 'gs-code-camp-v2';
 
 function loadState() {
   try {
@@ -486,7 +640,8 @@ function runCode() {
 function checkChallenge() {
   const preview = document.getElementById('preview');
   const doc = preview.contentDocument || preview.contentWindow.document;
-  const result = challenges[current].check(doc);
+  const code = document.getElementById('editor').value;
+  const result = challenges[current].check(doc, code);
   const el = document.getElementById('checkResult');
 
   if (result === true) {
