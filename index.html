@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Girl Scout Code Camp</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gs-green: #00ae58;
+      --gs-dark-green: #006838;
+      --gs-light-green: #e8f5e9;
+      --gs-gold: #ffc107;
+      --gs-brown: #5d4037;
+      --gs-pink: #e91e63;
+      --gs-bg: #f5f0e8;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--gs-bg);
+      color: #333;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--gs-dark-green), var(--gs-green));
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header h1 .tent { font-size: 1.8rem; }
+
+    .badge-count {
+      background: var(--gs-gold);
+      color: var(--gs-brown);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    /* Challenge Navigation */
+    .challenge-nav {
+      display: flex;
+      gap: 8px;
+      padding: 12px 24px;
+      background: white;
+      border-bottom: 3px solid var(--gs-green);
+      overflow-x: auto;
+    }
+
+    .challenge-btn {
+      padding: 8px 16px;
+      border: 2px solid #ddd;
+      border-radius: 20px;
+      background: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .challenge-btn:hover { border-color: var(--gs-green); background: var(--gs-light-green); }
+    .challenge-btn.active { background: var(--gs-green); color: white; border-color: var(--gs-green); }
+    .challenge-btn.completed { background: var(--gs-gold); border-color: var(--gs-gold); color: var(--gs-brown); }
+    .challenge-btn.completed::after { content: " \2713"; }
+
+    /* Main Layout */
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr;
+      height: calc(100vh - 110px);
+    }
+
+    /* Instructions Panel */
+    .instructions {
+      grid-column: 1 / -1;
+      background: white;
+      padding: 16px 24px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .instructions h2 {
+      color: var(--gs-dark-green);
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .instructions p { font-size: 0.95rem; line-height: 1.5; color: #555; }
+    .instructions code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--gs-pink);
+    }
+
+    .hint-btn {
+      margin-top: 8px;
+      background: none;
+      border: 1px dashed var(--gs-green);
+      color: var(--gs-green);
+      padding: 4px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .hint { display: none; margin-top: 8px; padding: 10px; background: #fff9c4; border-radius: 8px; font-size: 0.85rem; }
+    .hint.show { display: block; }
+
+    /* Editor */
+    .editor-panel {
+      border-right: 3px solid var(--gs-green);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      padding: 8px 16px;
+      background: #2d2d2d;
+      color: #aaa;
+      font-size: 0.8rem;
+      font-family: monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .run-btn {
+      background: var(--gs-green);
+      color: white;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+    .run-btn:hover { background: var(--gs-dark-green); }
+
+    textarea.code-editor {
+      flex: 1;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      resize: none;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      tab-size: 2;
+      outline: none;
+    }
+
+    /* Preview */
+    .preview-panel { display: flex; flex-direction: column; background: white; }
+
+    .preview-frame {
+      flex: 1;
+      border: none;
+      width: 100%;
+      height: 100%;
+      background: white;
+    }
+
+    /* Check button */
+    .check-row {
+      padding: 8px 16px;
+      background: #f9f9f9;
+      border-top: 1px solid #ddd;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .check-btn {
+      background: var(--gs-gold);
+      color: var(--gs-brown);
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .check-btn:hover { filter: brightness(1.1); }
+
+    .check-result {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .check-result.pass { color: var(--gs-green); }
+    .check-result.fail { color: #e53935; }
+
+    /* Celebration overlay */
+    .celebration {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .celebration.show { display: flex; }
+
+    .celebration-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      animation: popIn 0.4s ease;
+    }
+
+    .celebration-card .badge-icon { font-size: 4rem; }
+    .celebration-card h2 { color: var(--gs-dark-green); margin: 12px 0 8px; }
+    .celebration-card p { color: #666; margin-bottom: 20px; }
+
+    .next-btn {
+      background: var(--gs-green);
+      color: white;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Confetti */
+    .confetti-piece {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      z-index: 101;
+      pointer-events: none;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .main { grid-template-columns: 1fr; grid-template-rows: auto 1fr 1fr; }
+      .editor-panel { border-right: none; border-bottom: 3px solid var(--gs-green); min-height: 250px; }
+      .preview-panel { min-height: 250px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="tent">&#9978;</span> Girl Scout Code Camp</h1>
+  <div class="badge-count" id="badgeCount">Badges: 0 / 5</div>
+</div>
+
+<div class="challenge-nav" id="challengeNav"></div>
+
+<div class="main">
+  <div class="instructions" id="instructions"></div>
+
+  <div class="editor-panel">
+    <div class="panel-header">
+      <span>&#128221; Your Code</span>
+      <button class="run-btn" onclick="runCode()">&#9654; Run Code</button>
+    </div>
+    <textarea class="code-editor" id="editor" spellcheck="false"></textarea>
+  </div>
+
+  <div class="preview-panel">
+    <div class="panel-header"><span>&#127912; Preview</span></div>
+    <iframe class="preview-frame" id="preview"></iframe>
+    <div class="check-row">
+      <button class="check-btn" onclick="checkChallenge()">&#11088; Check My Work!</button>
+      <span class="check-result" id="checkResult"></span>
+    </div>
+  </div>
+</div>
+
+<div class="celebration" id="celebration">
+  <div class="celebration-card">
+    <div class="badge-icon" id="celebBadge"></div>
+    <h2 id="celebTitle">Badge Earned!</h2>
+    <p id="celebMsg"></p>
+    <button class="next-btn" onclick="nextChallenge()">Next Challenge &rarr;</button>
+  </div>
+</div>
+
+<script>
+const challenges = [
+  {
+    title: "My First Web Page",
+    icon: "&#127793;",
+    badge: "&#127793;",
+    badgeName: "Seedling Badge",
+    description: `Every website starts with HTML! Create a page with a heading that says <code>Hello Girl Scouts!</code> and a paragraph underneath that says something about yourself.`,
+    hint: `Use <code>&lt;h1&gt;Hello Girl Scouts!&lt;/h1&gt;</code> for the heading and <code>&lt;p&gt;I like camping!&lt;/p&gt;</code> for the paragraph.`,
+    starter: `<h1>Hello Girl Scouts!</h1>\n<p>Write something about yourself here!</p>`,
+    check(doc) {
+      const h1 = doc.querySelector('h1');
+      const p = doc.querySelector('p');
+      if (!h1) return "Add a heading using <h1> tags!";
+      if (!p) return "Add a paragraph using <p> tags!";
+      if (p.textContent.trim().length < 5) return "Write a bit more in your paragraph!";
+      return true;
+    }
+  },
+  {
+    title: "Cookie Shop List",
+    icon: "&#127850;",
+    badge: "&#127850;",
+    badgeName: "Cookie Badge",
+    description: `Girl Scout cookies are the best! Make a page with a heading <code>Our Cookie Flavors</code> and a list of at least 3 cookie names using a <code>&lt;ul&gt;</code> list with <code>&lt;li&gt;</code> items.`,
+    hint: `Try this structure:<br><code>&lt;ul&gt;<br>&nbsp;&nbsp;&lt;li&gt;Thin Mints&lt;/li&gt;<br>&nbsp;&nbsp;&lt;li&gt;Samoas&lt;/li&gt;<br>&nbsp;&nbsp;&lt;li&gt;Tagalongs&lt;/li&gt;<br>&lt;/ul&gt;</code>`,
+    starter: `<h1>Our Cookie Flavors</h1>\n\n<ul>\n  <li>Thin Mints</li>\n  <li>Add more cookies!</li>\n</ul>`,
+    check(doc) {
+      const h1 = doc.querySelector('h1');
+      const lis = doc.querySelectorAll('li');
+      if (!h1) return "Add a heading!";
+      if (lis.length < 3) return "Add at least 3 cookie flavors to your list!";
+      return true;
+    }
+  },
+  {
+    title: "Colorful Campsite",
+    icon: "&#127981;",
+    badge: "&#127981;",
+    badgeName: "Campfire Badge",
+    description: `Now let's add some COLOR! Use a <code>&lt;style&gt;</code> tag to change the <code>background-color</code> of the page body and the <code>color</code> of your heading. Make your campsite page colorful!`,
+    hint: `Add this at the top of your code:<br><code>&lt;style&gt;<br>&nbsp;&nbsp;body { background-color: lightgreen; }<br>&nbsp;&nbsp;h1 { color: brown; }<br>&lt;/style&gt;</code>`,
+    starter: `<style>\n  body {\n    /* Change the background color! Try: lightgreen, pink, lightyellow */\n    background-color: white;\n  }\n  h1 {\n    /* Change the text color! Try: brown, darkgreen, purple */\n    color: black;\n  }\n</style>\n\n<h1>Welcome to Camp!</h1>\n<p>The best campsite in the forest.</p>`,
+    check(doc) {
+      const body = doc.body;
+      const h1 = doc.querySelector('h1');
+      if (!h1) return "Add a heading!";
+      const bodyBg = getComputedStyle(body).backgroundColor;
+      const h1Color = getComputedStyle(h1).color;
+      if (bodyBg === 'rgba(0, 0, 0, 0)' || bodyBg === 'rgb(255, 255, 255)') return "Change the background-color to something other than white!";
+      if (h1Color === 'rgb(0, 0, 0)') return "Change the heading color to something other than black!";
+      return true;
+    }
+  },
+  {
+    title: "Badge Designer",
+    icon: "&#129351;",
+    badge: "&#129351;",
+    badgeName: "Designer Badge",
+    description: `Design a badge! Create a <code>&lt;div&gt;</code> and use CSS to make it look like a badge: give it a <code>width</code>, <code>height</code>, <code>border-radius: 50%</code> (makes it a circle!), a <code>background-color</code>, and center some text inside it.`,
+    hint: `Try:<br><code>&lt;style&gt;<br>&nbsp;&nbsp;.badge {<br>&nbsp;&nbsp;&nbsp;&nbsp;width: 150px;<br>&nbsp;&nbsp;&nbsp;&nbsp;height: 150px;<br>&nbsp;&nbsp;&nbsp;&nbsp;border-radius: 50%;<br>&nbsp;&nbsp;&nbsp;&nbsp;background-color: gold;<br>&nbsp;&nbsp;&nbsp;&nbsp;text-align: center;<br>&nbsp;&nbsp;&nbsp;&nbsp;line-height: 150px;<br>&nbsp;&nbsp;&nbsp;&nbsp;font-size: 20px;<br>&nbsp;&nbsp;}<br>&lt;/style&gt;<br>&lt;div class="badge"&gt;Coder&lt;/div&gt;</code>`,
+    starter: `<style>\n  .badge {\n    width: 150px;\n    height: 150px;\n    /* Add border-radius: 50%; to make it a circle! */\n    /* Add a background-color */\n    /* Add text-align: center; */\n    /* Add line-height: 150px; to center text vertically */\n    font-size: 20px;\n    font-weight: bold;\n  }\n</style>\n\n<div class="badge">Coder!</div>`,
+    check(doc) {
+      const badge = doc.querySelector('.badge');
+      if (!badge) return "Create a div with class='badge'!";
+      const style = getComputedStyle(badge);
+      if (style.borderRadius !== '50%' && !style.borderRadius.includes('75px')) return "Add border-radius: 50% to make it a circle!";
+      const bg = style.backgroundColor;
+      if (bg === 'rgba(0, 0, 0, 0)' || bg === 'rgb(255, 255, 255)' || bg === 'transparent') return "Give your badge a background-color!";
+      return true;
+    }
+  },
+  {
+    title: "Troop Homepage",
+    icon: "&#11088;",
+    badge: "&#11088;",
+    badgeName: "Star Badge",
+    description: `Final challenge! Build a mini troop homepage. It needs: a colored heading with your troop name, a paragraph about your troop, a list of activities, AND at least one styled element (background, colors, font-size, etc). Show off everything you've learned!`,
+    hint: `Combine everything! Use <code>&lt;style&gt;</code> for CSS, <code>&lt;h1&gt;</code> for heading, <code>&lt;p&gt;</code> for paragraphs, <code>&lt;ul&gt;</code> and <code>&lt;li&gt;</code> for lists. Get creative with colors!`,
+    starter: `<style>\n  body {\n    font-family: Arial, sans-serif;\n    /* Add a background-color! */\n  }\n  h1 {\n    /* Style your troop name! */\n  }\n</style>\n\n<h1>Troop Awesome</h1>\n<p>We are the coolest troop ever!</p>\n\n<h2>Our Favorite Activities</h2>\n<ul>\n  <li>Camping</li>\n  <li>Coding</li>\n  <li>Add more!</li>\n</ul>`,
+    check(doc) {
+      const h1 = doc.querySelector('h1');
+      const p = doc.querySelector('p');
+      const lis = doc.querySelectorAll('li');
+      const style = doc.querySelector('style');
+      if (!h1) return "Add a heading for your troop name!";
+      if (!p) return "Add a paragraph about your troop!";
+      if (lis.length < 3) return "Add at least 3 activities to your list!";
+      if (!style || style.textContent.trim().length < 20) return "Add more CSS styling to make it look awesome!";
+      return true;
+    }
+  }
+];
+
+// --- LocalStorage persistence ---
+const STORAGE_KEY = 'gs-code-camp';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function saveState() {
+  const state = {
+    current,
+    completed: [...completed],
+    code: savedCode
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let savedCode = {}; // { challengeIndex: "code string" }
+let current = 0;
+let completed = new Set();
+
+// Restore from localStorage
+const _saved = loadState();
+if (_saved) {
+  current = _saved.current || 0;
+  completed = new Set(_saved.completed || []);
+  savedCode = _saved.code || {};
+}
+
+function renderNav() {
+  const nav = document.getElementById('challengeNav');
+  nav.innerHTML = challenges.map((c, i) =>
+    `<button class="challenge-btn ${i === current ? 'active' : ''} ${completed.has(i) ? 'completed' : ''}" onclick="goTo(${i})">
+      ${c.icon} ${c.title}
+    </button>`
+  ).join('');
+}
+
+function renderChallenge() {
+  const c = challenges[current];
+  document.getElementById('instructions').innerHTML = `
+    <h2>${c.icon} Challenge ${current + 1}: ${c.title}</h2>
+    <p>${c.description}</p>
+    <button class="hint-btn" onclick="toggleHint()">&#128161; Need a hint?</button>
+    <div class="hint" id="hint">${c.hint}</div>
+  `;
+  document.getElementById('editor').value = savedCode[current] !== undefined ? savedCode[current] : c.starter;
+  document.getElementById('checkResult').textContent = '';
+  document.getElementById('checkResult').className = 'check-result';
+  document.getElementById('badgeCount').textContent = `Badges: ${completed.size} / ${challenges.length}`;
+  renderNav();
+  runCode();
+}
+
+function goTo(i) {
+  // Save current code before switching
+  savedCode[current] = document.getElementById('editor').value;
+  current = i;
+  saveState();
+  renderChallenge();
+}
+
+function toggleHint() {
+  document.getElementById('hint').classList.toggle('show');
+}
+
+function runCode() {
+  const code = document.getElementById('editor').value;
+  const preview = document.getElementById('preview');
+  const doc = preview.contentDocument || preview.contentWindow.document;
+  doc.open();
+  doc.write(code);
+  doc.close();
+}
+
+function checkChallenge() {
+  const preview = document.getElementById('preview');
+  const doc = preview.contentDocument || preview.contentWindow.document;
+  const result = challenges[current].check(doc);
+  const el = document.getElementById('checkResult');
+
+  if (result === true) {
+    el.textContent = "Perfect!";
+    el.className = 'check-result pass';
+    if (!completed.has(current)) {
+      completed.add(current);
+      saveState();
+      document.getElementById('badgeCount').textContent = `Badges: ${completed.size} / ${challenges.length}`;
+      renderNav();
+      showCelebration();
+    }
+  } else {
+    el.textContent = result;
+    el.className = 'check-result fail';
+  }
+}
+
+function showCelebration() {
+  const c = challenges[current];
+  document.getElementById('celebBadge').innerHTML = c.badge;
+  document.getElementById('celebTitle').textContent = `${c.badgeName} Earned!`;
+  document.getElementById('celebMsg').textContent = `Amazing work! You completed "${c.title}"!`;
+  document.getElementById('celebration').classList.add('show');
+  spawnConfetti();
+}
+
+function nextChallenge() {
+  document.getElementById('celebration').classList.remove('show');
+  if (current < challenges.length - 1) {
+    current++;
+    renderChallenge();
+  }
+}
+
+function spawnConfetti() {
+  const colors = ['#00ae58', '#ffc107', '#e91e63', '#2196f3', '#ff9800', '#9c27b0'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.top = '-10px';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+    piece.style.width = (6 + Math.random() * 8) + 'px';
+    piece.style.height = (6 + Math.random() * 8) + 'px';
+    document.body.appendChild(piece);
+
+    const duration = 1500 + Math.random() * 2000;
+    const drift = (Math.random() - 0.5) * 200;
+
+    piece.animate([
+      { transform: 'translateY(0) translateX(0) rotate(0deg)', opacity: 1 },
+      { transform: `translateY(100vh) translateX(${drift}px) rotate(${360 + Math.random()*360}deg)`, opacity: 0 }
+    ], { duration, easing: 'ease-in' }).onfinish = () => piece.remove();
+  }
+}
+
+// Auto-run on typing (debounced) + save
+let timeout;
+document.getElementById('editor').addEventListener('input', () => {
+  savedCode[current] = document.getElementById('editor').value;
+  saveState();
+  clearTimeout(timeout);
+  timeout = setTimeout(runCode, 500);
+});
+
+// Tab key in editor
+document.getElementById('editor').addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta = e.target;
+    const start = ta.selectionStart;
+    ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(ta.selectionEnd);
+    ta.selectionStart = ta.selectionEnd = start + 2;
+  }
+});
+
+// Init
+renderChallenge();
+</script>
+
+</body>
+</html>
