@@ -137,8 +137,8 @@
 
     .panel-header {
       padding: 8px 16px;
-      background: #2d2d2d;
-      color: #aaa;
+      background: #1e1e1e;
+      color: #75715e;
       font-size: 0.8rem;
       font-family: monospace;
       display: flex;
@@ -168,8 +168,9 @@
       font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
       font-size: 14px;
       line-height: 1.6;
-      background: #1e1e1e;
-      color: #d4d4d4;
+      background: #272822;
+      color: #f8f8f2;
+      caret-color: #f8f8f0;
       tab-size: 2;
       outline: none;
     }
@@ -711,12 +712,26 @@ document.getElementById('editor').addEventListener('input', () => {
 
 // Tab key in editor
 document.getElementById('editor').addEventListener('keydown', (e) => {
+  const ta = e.target;
   if (e.key === 'Tab') {
     e.preventDefault();
-    const ta = e.target;
     const start = ta.selectionStart;
     ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(ta.selectionEnd);
     ta.selectionStart = ta.selectionEnd = start + 2;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const start = ta.selectionStart;
+    const before = ta.value.substring(0, start);
+    const after = ta.value.substring(ta.selectionEnd);
+    // Get the indentation of the current line
+    const currentLine = before.split('\n').pop();
+    const indent = currentLine.match(/^(\s*)/)[1];
+    const insert = '\n' + indent;
+    ta.value = before + insert + after;
+    ta.selectionStart = ta.selectionEnd = start + insert.length;
+    // Trigger input event for auto-save and preview
+    ta.dispatchEvent(new Event('input'));
   }
 });
 
