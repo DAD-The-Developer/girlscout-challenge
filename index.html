@@ -689,8 +689,8 @@ const challenges = [
     icon: "&#129351;",
     badge: "&#129351;",
     badgeName: "Designer Badge",
-    description: `Design a circular badge using CSS! You need a <code>&lt;div&gt;</code> element styled with: <code>border-radius: 50%</code> (makes circles!), a <code>background-color</code>, and centered text. Follow the comments step by step.`,
-    hint: `Remove the <code>/* </code> and <code> */</code> around each CSS line to "uncomment" it and make it work. For example, change <code>/* border-radius: 50%; */</code> to just <code>border-radius: 50%;</code>`,
+    description: `Design a circular badge using CSS! Type in each CSS property yourself by following the STEP comments. You'll learn: <code>border-radius</code>, <code>background-color</code>, <code>text-align</code>, and <code>line-height</code>.`,
+    hint: `Each STEP tells you exactly what to type. For example, STEP 1 says to type <code>border-radius: 50%;</code> — type it on the blank line right below that comment. Don't forget the semicolon <code>;</code> at the end!`,
     starter: `<!DOCTYPE html>
 <html>
   <head>
@@ -702,22 +702,24 @@ const challenges = [
         font-size: 20px;
         font-weight: bold;
 
-        /* STEP 1: Uncomment the line below to make it a circle */
-        /* (Remove the /* and */ around it) */
-        /* border-radius: 50%; */
+        /* STEP 1: Make it a circle! */
+        /* Type this on the next line:  border-radius: 50%;  */
 
-        /* STEP 2: Uncomment and pick a background color */
-        /* Try: gold, tomato, dodgerblue, mediumseagreen */
-        /* background-color: gold; */
+        /* STEP 2: Give it a background color! */
+        /* Type this on the next line:  background-color: gold;  */
+        /* (You can change "gold" to: tomato, dodgerblue, mediumseagreen, hotpink) */
 
-        /* STEP 3: Uncomment these to center the text */
-        /* text-align: center; */
-        /* line-height: 150px; */
+        /* STEP 3: Center the text! */
+        /* Type this on the next line:  text-align: center;  */
+
+        /* STEP 4: Vertically center the text! */
+        /* Type this on the next line:  line-height: 150px;  */
+
       }
     </style>
   </head>
   <body>
-    <!-- STEP 4: Change the text inside the badge to your own badge name! -->
+    <!-- STEP 5: Change "Coder!" to your own badge name! -->
     <div class="badge">Coder!</div>
   </body>
 </html>`,
@@ -727,10 +729,11 @@ const challenges = [
       const badge = doc.querySelector('.badge');
       if (!badge) return "Keep the <div class=\"badge\"> element in your <body>!";
       const style = getComputedStyle(badge);
-      if (style.borderRadius !== '50%' && !style.borderRadius.includes('75px')) return "Uncomment border-radius: 50%; to make it a circle!";
+      if (style.borderRadius !== '50%' && !style.borderRadius.includes('75px')) return "Type  border-radius: 50%;  on the line below STEP 1!";
       const bg = style.backgroundColor;
-      if (bg === 'rgba(0, 0, 0, 0)' || bg === 'rgb(255, 255, 255)' || bg === 'transparent') return "Uncomment background-color and pick a color!";
-      if (style.textAlign !== 'center') return "Uncomment text-align: center; to center your text!";
+      if (bg === 'rgba(0, 0, 0, 0)' || bg === 'rgb(255, 255, 255)' || bg === 'transparent') return "Type  background-color: gold;  on the line below STEP 2 (pick any color you like)!";
+      if (style.textAlign !== 'center') return "Type  text-align: center;  on the line below STEP 3!";
+      if (style.lineHeight !== '150px') return "Type  line-height: 150px;  on the line below STEP 4!";
       return true;
     }
   },
@@ -799,7 +802,7 @@ const challenges = [
 ];
 
 // --- LocalStorage persistence ---
-const STORAGE_KEY = 'gs-code-camp-v2';
+const STORAGE_KEY = 'gs-code-camp-v3';
 
 function loadState() {
   try {
