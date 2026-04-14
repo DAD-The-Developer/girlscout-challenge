@@ -85,7 +85,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       grid-template-rows: auto 1fr;
-      height: calc(100vh - 110px);
+      height: calc(100vh - 160px);
     }
 
     /* Instructions Panel */
@@ -222,30 +222,36 @@
       background: white;
     }
 
-    /* Check button */
+    /* Check button — sticky bottom bar */
     .check-row {
-      padding: 8px 16px;
-      background: #f9f9f9;
-      border-top: 1px solid #ddd;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 24px;
+      background: white;
+      border-top: 3px solid var(--gs-green);
       display: flex;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
+      z-index: 50;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
     }
 
     .check-btn {
       background: var(--gs-gold);
       color: var(--gs-brown);
       border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
+      padding: 12px 28px;
+      border-radius: 24px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
     .check-btn:hover { filter: brightness(1.1); }
 
     .check-result {
-      font-size: 0.9rem;
+      font-size: 1rem;
       font-weight: 500;
     }
     .check-result.pass { color: var(--gs-green); }
@@ -335,11 +341,12 @@
   <div class="preview-panel">
     <div class="panel-header"><span>&#127912; Preview</span></div>
     <iframe class="preview-frame" id="preview"></iframe>
-    <div class="check-row">
-      <button class="check-btn" onclick="checkChallenge()">&#11088; Check My Work!</button>
-      <span class="check-result" id="checkResult"></span>
-    </div>
   </div>
+</div>
+
+<div class="check-row">
+  <button class="check-btn" onclick="checkChallenge()">&#11088; Check My Work!</button>
+  <span class="check-result" id="checkResult"></span>
 </div>
 
 <div class="celebration" id="celebration">
@@ -867,7 +874,7 @@ function runCode() {
   doc.open();
   doc.write(code);
   doc.close();
-  updateHighlight();
+  requestAnimationFrame(updateHighlight);
 }
 
 function checkChallenge() {
@@ -935,11 +942,16 @@ function spawnConfetti() {
 
 // Auto-run on typing (debounced) + save
 let timeout;
+let hlRaf;
 document.getElementById('editor').addEventListener('input', () => {
   savedCode[current] = document.getElementById('editor').value;
   saveState();
+  // Debounce the preview (expensive: writes to iframe)
   clearTimeout(timeout);
-  timeout = setTimeout(runCode, 500);
+  timeout = setTimeout(runCode, 600);
+  // Highlight on next frame (cheap enough for raf, avoids blocking keystrokes)
+  cancelAnimationFrame(hlRaf);
+  hlRaf = requestAnimationFrame(updateHighlight);
 });
 
 // Tab key in editor
