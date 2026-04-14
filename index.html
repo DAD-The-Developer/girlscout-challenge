@@ -159,21 +159,57 @@
     }
     .run-btn:hover { background: var(--gs-dark-green); }
 
-    textarea.code-editor {
+    .editor-wrap {
       flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .code-highlight, textarea.code-editor {
+      position: absolute;
+      top: 0; left: 0;
       width: 100%;
+      height: 100%;
       padding: 16px;
+      margin: 0;
       border: none;
-      resize: none;
       font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
       font-size: 14px;
       line-height: 1.6;
+      tab-size: 2;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .code-highlight {
       background: #272822;
       color: #f8f8f2;
-      caret-color: #f8f8f0;
-      tab-size: 2;
-      outline: none;
+      pointer-events: none;
+      z-index: 0;
+      overflow: auto;
     }
+
+    textarea.code-editor {
+      background: transparent;
+      color: transparent;
+      caret-color: #f8f8f0;
+      resize: none;
+      outline: none;
+      z-index: 1;
+      overflow: auto;
+    }
+
+    /* Monokai syntax colors */
+    .hl-tag { color: #f92672; }
+    .hl-attr { color: #a6e22e; }
+    .hl-str { color: #e6db74; }
+    .hl-comment { color: #75715e; font-style: italic; }
+    .hl-doctype { color: #75715e; }
+    .hl-css-prop { color: #66d9ef; font-style: italic; }
+    .hl-css-val { color: #ae81ff; }
+    .hl-css-sel { color: #a6e22e; }
+    .hl-css-brace { color: #f8f8f2; }
 
     /* Preview */
     .preview-panel { display: flex; flex-direction: column; background: white; }
@@ -290,7 +326,10 @@
       <span>&#128221; Your Code</span>
       <button class="run-btn" onclick="runCode()">&#9654; Run Code</button>
     </div>
-    <textarea class="code-editor" id="editor" spellcheck="false"></textarea>
+    <div class="editor-wrap">
+      <pre class="code-highlight" id="highlight" aria-hidden="true"></pre>
+      <textarea class="code-editor" id="editor" spellcheck="false"></textarea>
+    </div>
   </div>
 
   <div class="preview-panel">
@@ -313,6 +352,198 @@
 </div>
 
 <script>
+// --- Syntax highlighting (Monokai) ---
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function highlightHTML(code) {
+  let result = '';
+  let i = 0;
+  while (i < code.length) {
+    // HTML comments
+    if (code.startsWith('<!--', i)) {
+      const end = code.indexOf('-->', i);
+      const slice = end === -1 ? code.substring(i) : code.substring(i, end + 3);
+      result += `<span class="hl-comment">${escapeHtml(slice)}</span>`;
+      i += slice.length;
+    }
+    // DOCTYPE
+    else if (code.substring(i, i + 9).toLowerCase() === '<!doctype') {
+      const end = code.indexOf('>', i);
+      const slice = end === -1 ? code.substring(i) : code.substring(i, end + 1);
+      result += `<span class="hl-doctype">${escapeHtml(slice)}</span>`;
+      i += slice.length;
+    }
+    // Style tag content (CSS highlighting)
+    else if (code.substring(i, i + 7).toLowerCase() === '<style>' || code.substring(i, i + 6).toLowerCase() === '<style') {
+      // Render the opening tag
+      const tagEnd = code.indexOf('>', i);
+      if (tagEnd === -1) { result += escapeHtml(code.substring(i)); break; }
+      const openTag = code.substring(i, tagEnd + 1);
+      result += highlightTag(openTag);
+      i = tagEnd + 1;
+      // Find </style>
+      const closeIdx = code.toLowerCase().indexOf('</style>', i);
+      const cssContent = closeIdx === -1 ? code.substring(i) : code.substring(i, closeIdx);
+      result += highlightCSS(cssContent);
+      i += cssContent.length;
+      if (closeIdx !== -1) {
+        result += `<span class="hl-tag">&lt;/style&gt;</span>`;
+        i += 8;
+      }
+    }
+    // HTML tags
+    else if (code[i] === '<' && (code[i + 1] === '/' || /[a-zA-Z]/.test(code[i + 1] || ''))) {
+      const end = code.indexOf('>', i);
+      if (end === -1) { result += escapeHtml(code.substring(i)); break; }
+      const tag = code.substring(i, end + 1);
+      result += highlightTag(tag);
+      i = end + 1;
+    }
+    else {
+      result += escapeHtml(code[i]);
+      i++;
+    }
+  }
+  return result;
+}
+
+function highlightTag(tag) {
+  // Match: <tagname attrs>
+  return tag.replace(
+    /^(<\/?)([a-zA-Z][a-zA-Z0-9]*)([\s\S]*?)(\/?>)$/,
+    function(_, open, name, attrs, close) {
+      let attrStr = highlightAttrs(attrs);
+      return `<span class="hl-tag">${escapeHtml(open)}${escapeHtml(name)}</span>${attrStr}<span class="hl-tag">${escapeHtml(close)}</span>`;
+    }
+  );
+}
+
+function highlightAttrs(attrs) {
+  if (!attrs.trim()) return escapeHtml(attrs);
+  return attrs.replace(
+    /([a-zA-Z\-]+)(=)("[^"]*"|'[^']*')?/g,
+    function(_, name, eq, val) {
+      let r = `<span class="hl-attr">${escapeHtml(name)}</span>${escapeHtml(eq)}`;
+      if (val) r += `<span class="hl-str">${escapeHtml(val)}</span>`;
+      return r;
+    }
+  ).replace(
+    /([a-zA-Z\-]+)(?!=)/g,
+    function(m) { return `<span class="hl-attr">${escapeHtml(m)}</span>`; }
+  );
+}
+
+function highlightCSS(css) {
+  let result = '';
+  let i = 0;
+  while (i < css.length) {
+    // CSS comments
+    if (css.startsWith('/*', i)) {
+      const end = css.indexOf('*/', i);
+      const slice = end === -1 ? css.substring(i) : css.substring(i, end + 2);
+      result += `<span class="hl-comment">${escapeHtml(slice)}</span>`;
+      i += slice.length;
+    }
+    // Inside a rule block
+    else if (css[i] === '{') {
+      result += `<span class="hl-css-brace">{</span>`;
+      i++;
+      // Highlight properties until closing brace
+      while (i < css.length && css[i] !== '}') {
+        if (css.startsWith('/*', i)) {
+          const end = css.indexOf('*/', i);
+          const slice = end === -1 ? css.substring(i) : css.substring(i, end + 2);
+          result += `<span class="hl-comment">${escapeHtml(slice)}</span>`;
+          i += slice.length;
+        }
+        // property: value;
+        else if (/[a-zA-Z\-]/.test(css[i])) {
+          const colonIdx = css.indexOf(':', i);
+          const semiIdx = css.indexOf(';', i);
+          const braceIdx = css.indexOf('}', i);
+          if (colonIdx !== -1 && (semiIdx === -1 || colonIdx < semiIdx) && (braceIdx === -1 || colonIdx < braceIdx)) {
+            const prop = css.substring(i, colonIdx);
+            result += `<span class="hl-css-prop">${escapeHtml(prop)}</span>`;
+            result += escapeHtml(':');
+            i = colonIdx + 1;
+            const valEnd = semiIdx !== -1 && (braceIdx === -1 || semiIdx < braceIdx) ? semiIdx : braceIdx !== -1 ? braceIdx : css.length;
+            const val = css.substring(i, valEnd);
+            // Highlight comments within values
+            result += highlightCSSValue(val);
+            i = valEnd;
+            if (i < css.length && css[i] === ';') {
+              result += escapeHtml(';');
+              i++;
+            }
+          } else {
+            result += escapeHtml(css[i]);
+            i++;
+          }
+        } else {
+          result += escapeHtml(css[i]);
+          i++;
+        }
+      }
+      if (i < css.length && css[i] === '}') {
+        result += `<span class="hl-css-brace">}</span>`;
+        i++;
+      }
+    }
+    // Selector text
+    else if (/[a-zA-Z.#:\-\[\*]/.test(css[i])) {
+      let selEnd = css.indexOf('{', i);
+      if (selEnd === -1) { result += escapeHtml(css.substring(i)); break; }
+      const sel = css.substring(i, selEnd);
+      result += `<span class="hl-css-sel">${escapeHtml(sel)}</span>`;
+      i = selEnd;
+    }
+    else {
+      result += escapeHtml(css[i]);
+      i++;
+    }
+  }
+  return result;
+}
+
+function highlightCSSValue(val) {
+  // Handle comments inside values
+  let result = '';
+  let i = 0;
+  while (i < val.length) {
+    if (val.startsWith('/*', i)) {
+      const end = val.indexOf('*/', i);
+      const slice = end === -1 ? val.substring(i) : val.substring(i, end + 2);
+      result += `<span class="hl-comment">${escapeHtml(slice)}</span>`;
+      i += slice.length;
+    } else {
+      // Collect non-comment text
+      const nextComment = val.indexOf('/*', i);
+      const chunk = nextComment === -1 ? val.substring(i) : val.substring(i, nextComment);
+      result += `<span class="hl-css-val">${escapeHtml(chunk)}</span>`;
+      i += chunk.length;
+    }
+  }
+  return result;
+}
+
+function updateHighlight() {
+  const code = document.getElementById('editor').value;
+  // Add a trailing newline so the pre height matches textarea when it ends with \n
+  document.getElementById('highlight').innerHTML = highlightHTML(code) + '\n';
+}
+
+// Sync scroll between textarea and highlight layer
+document.addEventListener('DOMContentLoaded', () => {
+  const editor = document.getElementById('editor');
+  const highlight = document.getElementById('highlight');
+  editor.addEventListener('scroll', () => {
+    highlight.scrollTop = editor.scrollTop;
+    highlight.scrollLeft = editor.scrollLeft;
+  });
+});
+
 // Helper: check that code has proper HTML document structure
 function checkStructure(code) {
   const lower = code.toLowerCase();
@@ -636,6 +867,7 @@ function runCode() {
   doc.open();
   doc.write(code);
   doc.close();
+  updateHighlight();
 }
 
 function checkChallenge() {
